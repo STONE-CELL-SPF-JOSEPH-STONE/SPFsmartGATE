@@ -127,12 +127,13 @@ The binary is built at `target/release/spf-smart-gate`.
 ```
 
 ### Start Claude/agent  
-Must copy CLI files to flat LMDB5 
-and then export to LMDB5.db
+##Must copy CLI files to flat LMDB5 
+##and then export to LMDB5.db
+##in new terminal
 
-in new terminal
-
+```bash
 HOME=~/SPFsmartGATE/LIVE/LMDB5 claude
+```
 
 ## CLI Commands
 
