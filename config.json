@@ -1,0 +1,223 @@
+{
+  "numStartups": 0,
+  "installMethod": "global",
+  "verbose": true,
+  "autoCompactEnabled": false,
+  "hasCompletedOnboarding": true,
+  "mcpServers": {
+    "spf-smart-gate": {
+      "type": "stdio",
+      "command": "/data/data/com.termux/files/home/SPFsmartGATE/LIVE/BIN/spf-smart-gate/spf-smart-gate",
+      "args": [
+        "serve"
+      ],
+      "env": {}
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-read.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-edit.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-write.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-bash.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-glob.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-grep.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-webfetch.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-notebookedit.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/pre-websearch.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/post-action.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/post-failure.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/user-prompt.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/stop-check.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/data/data/com.termux/files/home/SPFsmartGATE/hooks/session-end.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Bash",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "NotebookEdit",
+      "Task"
+    ],
+    "deny": [],
+    "blockedPaths": [
+      "/tmp",
+      "/etc",
+      "/usr",
+      "/system",
+      "/data/data/com.termux/files/usr"
+    ],
+    "allowedPaths": [
+      "/data/data/com.termux/files/home/"
+    ],
+    "defaultMode": "default"
+  },
+  "projects": {
+    "/data/data/com.termux/files/home": {
+      "allowedTools": [
+        "mcp__spf-smart-gate__spf_read",
+        "mcp__spf-smart-gate__spf_write",
+        "mcp__spf-smart-gate__spf_edit",
+        "mcp__spf-smart-gate__spf_bash",
+        "mcp__spf-smart-gate__spf_glob",
+        "mcp__spf-smart-gate__spf_grep",
+        "mcp__spf-smart-gate__spf_status",
+        "mcp__spf-smart-gate__spf_session",
+        "mcp__spf-smart-gate__spf_web_search",
+        "mcp__spf-smart-gate__spf_web_fetch",
+        "mcp__spf-smart-gate__spf_web_download",
+        "mcp__spf-smart-gate__spf_web_api",
+        "mcp__spf-smart-gate__spf_brain_search",
+        "mcp__spf-smart-gate__spf_brain_store",
+        "mcp__spf-smart-gate__spf_brain_context",
+        "mcp__spf-smart-gate__spf_brain_index",
+        "mcp__spf-smart-gate__spf_brain_list",
+        "mcp__spf-smart-gate__spf_brain_status",
+        "mcp__spf-smart-gate__spf_brain_recall",
+        "mcp__spf-smart-gate__spf_brain_list_docs",
+        "mcp__spf-smart-gate__spf_brain_get_doc"
+      ],
+      "hasTrustDialogAccepted": true,
+      "hasCompletedProjectOnboarding": true
+    }
+  },
+  "telemetry": {
+    "enabled": false
+  }
+}
