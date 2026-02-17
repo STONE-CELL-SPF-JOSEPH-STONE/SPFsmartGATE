@@ -27,7 +27,7 @@ through the gate.**
 - `C = basic^1 + deps^7 + complex^10 + files * 10`
 - `a_optimal(C) = W_eff * (1 - 1 / ln(C + e))`
 - 4-tier classification: SIMPLE, LIGHT, MEDIUM, CRITICAL
-- Per-tool complexity weights for all 44 allowed tools
+- Per-tool complexity weights for all 55 exposed tools
 - Dynamic analyze/build percentage allocation per tier
 
 #### Build Anchor Protocol
@@ -36,7 +36,8 @@ through the gate.**
 - Prevents blind modifications to existing code
 
 #### Security
-- Default-deny tool allowlist (44 known-safe, 10 hard-blocked)
+- Default-deny tool allowlist (55 exposed, 8 hard-blocked
+  filesystem tools)
 - SSRF protection with full IPv4/IPv6 validation
 - Content inspection: credential patterns, path traversal,
   shell injection detection
@@ -48,23 +49,23 @@ through the gate.**
   TMP_DB, AGENT_STATE, SESSION)
 - MCP server via stdio JSON-RPC 2.0
 - Pre-compiled binary for Android aarch64
-- 17 Rust source modules (8,870+ lines)
+- 15 Rust source modules (~7,796 lines)
 
 #### Claude Code Integration
 - 31 hook scripts for full Claude Code lifecycle coverage
 - SessionStart, PreToolUse (9 matchers), PostToolUse,
   PostToolUseFailure, UserPromptSubmit, Stop, SessionEnd
 - Pre-configured config.json with hooks, permissions, and
-  21 pre-approved SPF MCP tools
+  pre-approved SPF MCP tools
 - LMDB5 containment system (optional, via install-lmdb5.sh)
 
 #### Deployment
-- `setup.sh` — one-command installation for Android
+- `spf-deploy.sh` — deployment configuration generator
 - `build.sh` — cross-platform build script with auto-detection
 - Universal Android support (auto-detects non-Termux environments)
 - Pre-configured LIVE/ directory structure
 
-#### Tools (44 allowed via MCP)
+#### Tools (55 exposed via MCP)
 - File operations: spf_read, spf_write, spf_edit
 - Search: spf_glob, spf_grep
 - System: spf_bash
@@ -74,15 +75,26 @@ through the gate.**
   spf_brain_index, spf_brain_list, spf_brain_status,
   spf_brain_recall, spf_brain_list_docs, spf_brain_get_doc
 - RAG: spf_rag_collect_web, spf_rag_collect_file,
-  spf_rag_collect_folder, spf_rag_smart_search, and more
+  spf_rag_collect_folder, spf_rag_collect_drop,
+  spf_rag_collect_rss, spf_rag_index_gathered, spf_rag_dedupe,
+  spf_rag_status, spf_rag_list_gathered,
+  spf_rag_bandwidth_status, spf_rag_fetch_url,
+  spf_rag_list_feeds, spf_rag_pending_searches,
+  spf_rag_fulfill_search, spf_rag_smart_search,
+  spf_rag_auto_fetch_gaps
 - State: spf_calculate, spf_status, spf_session
 - Config: spf_config_paths, spf_config_stats
 - Projects: spf_projects_list, spf_projects_get,
-  spf_projects_set
-- Filesystem: spf_fs_ls, spf_fs_read, spf_fs_write,
-  spf_fs_exists, spf_fs_stat, spf_fs_mkdir, spf_fs_rm,
-  spf_fs_rename
+  spf_projects_set, spf_projects_delete, spf_projects_stats
+- TMP: spf_tmp_list, spf_tmp_stats, spf_tmp_get, spf_tmp_active
+- Agent: spf_agent_stats, spf_agent_memory_search,
+  spf_agent_memory_by_tag, spf_agent_session_info,
+  spf_agent_context
 - Notebook: spf_notebook_edit
+
+#### Hard-Blocked Tools (gate-enforced deny)
+- spf_fs_ls, spf_fs_read, spf_fs_write, spf_fs_exists,
+  spf_fs_stat, spf_fs_mkdir, spf_fs_rm, spf_fs_rename
 
 ### Platform
 
