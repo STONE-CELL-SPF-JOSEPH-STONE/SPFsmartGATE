@@ -13,7 +13,6 @@
 # ----------------------------------------------------------
 
 # User config — setup.sh generates from shipped defaults
-config.json
 .claude.json
 
 # Runtime state — logs, session data
