@@ -1,0 +1,90 @@
+# SPF Smart Gateway - MCP Command Gateway
+# Copyright 2026 Joseph Stone - All Rights Reserved
+#
+# All tool calls route through this gateway.
+# Enforces SPF complexity formula, validates rules,
+# gates all file/bash operations. Pure Rust, LMDB state,
+# MCP stdio JSON-RPC 2.0.
+
+[package]
+name = "spf-smart-gate"
+version = "2.0.0"
+edition = "2021"
+authors = ["Joseph Stone <joepcstone@gmail.com>"]
+description = "SPF Smart GATE - MCP command gateway with complexity enforcement"
+license-file = "LICENSE.md"
+repository = "https://github.com/STONE-CELL-SPF-JOSEPH-STONE/SPFsmartGATE"
+readme = "README.md"
+
+[[bin]]
+name = "spf-smart-gate"
+path = "src/main.rs"
+
+[lib]
+name = "spf_smart_gate"
+path = "src/lib.rs"
+
+[dependencies]
+# ============================================================================
+# STATE STORAGE - LMDB
+# ============================================================================
+heed = "0.20"
+
+# ============================================================================
+# SERIALIZATION
+# ============================================================================
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# ============================================================================
+# CLI
+# ============================================================================
+clap = { version = "4.5", features = ["derive"] }
+
+# ============================================================================
+# ERROR HANDLING
+# ============================================================================
+thiserror = "1.0"
+anyhow = "1.0"
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+log = "0.4"
+env_logger = "0.11"
+
+# ============================================================================
+# TIME
+# ============================================================================
+chrono = { version = "0.4", features = ["serde"] }
+
+# ============================================================================
+# WEB BROWSER — AI-friendly HTTP client
+# ============================================================================
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls", "json"] }
+html2text = "0.6"
+
+# ============================================================================
+# FILESYSTEM — SHA256 checksums + hex encoding (NEW for fs.rs)
+# ============================================================================
+sha2 = "0.10"
+hex = "0.4"
+
+# ============================================================================
+# PROFILES
+# ============================================================================
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+opt-level = 1
+
+# ============================================================================
+# DEV DEPENDENCIES — for tests only
+# ============================================================================
+[dev-dependencies]
+tempfile = "3"
