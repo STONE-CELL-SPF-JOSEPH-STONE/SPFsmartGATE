@@ -142,3 +142,72 @@ fn check_blocked_path_references(
         }
     }
 }
+
+// ============================================================================
+// TESTS
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::SpfConfig;
+
+    fn default_config() -> SpfConfig {
+        SpfConfig::default()
+    }
+
+    #[test]
+    fn detects_aws_access_key() {
+        let config = default_config();
+        let result = inspect_content("my key is AKIAIOSFODNN7EXAMPLE", "data.txt", &config);
+        assert!(!result.warnings.is_empty(), "Should detect AKIA pattern");
+    }
+
+    #[test]
+    fn detects_private_key() {
+        let config = default_config();
+        let result = inspect_content("-----BEGIN RSA PRIVATE KEY-----\nblah", "key.txt", &config);
+        assert!(!result.warnings.is_empty(), "Should detect RSA private key");
+    }
+
+    #[test]
+    fn detects_github_pat() {
+        let config = default_config();
+        let result = inspect_content("token: ghp_abc123def456ghi789", "notes.txt", &config);
+        assert!(!result.warnings.is_empty(), "Should detect GitHub PAT");
+    }
+
+    #[test]
+    fn detects_path_traversal() {
+        let config = default_config();
+        let result = inspect_content("read from ../../../etc/passwd", "data.txt", &config);
+        assert!(!result.warnings.is_empty(), "Should detect path traversal");
+    }
+
+    #[test]
+    fn detects_shell_injection_in_non_code() {
+        let config = default_config();
+        let result = inspect_content("run $(whoami) now", "data.txt", &config);
+        assert!(!result.warnings.is_empty(), "Should detect command substitution");
+    }
+
+    #[test]
+    fn skips_shell_patterns_in_code_files() {
+        let config = default_config();
+        // Shell patterns are normal in .sh files — should NOT flag shell injection
+        let result = inspect_content("echo $(date)", "script.sh", &config);
+        // Should have zero warnings about shell injection (only creds/traversal checked for code)
+        let shell_warnings: Vec<_> = result.warnings.iter()
+            .filter(|w| w.contains("SHELL") || w.contains("Command substitution"))
+            .collect();
+        assert!(shell_warnings.is_empty(), "Should skip shell patterns in .sh files: {:?}", shell_warnings);
+    }
+
+    #[test]
+    fn clean_content_passes() {
+        let config = default_config();
+        let result = inspect_content("Hello, this is normal content.", "readme.txt", &config);
+        assert!(result.warnings.is_empty(), "Clean content should have no warnings: {:?}", result.warnings);
+        assert!(result.valid, "Clean content should be valid");
+    }
+}

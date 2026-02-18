@@ -640,7 +640,7 @@ mod tests {
 
         // Test exists
         assert!(fs.exists("/")?);
-        assert!(fs.exists("/home/user")?);
+        assert!(fs.exists("/home/agent")?);
         assert!(!fs.exists("/nonexistent")?);
 
         // Test write and read

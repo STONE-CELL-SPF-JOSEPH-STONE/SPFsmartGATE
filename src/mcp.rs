@@ -1318,7 +1318,7 @@ fn handle_tool_call(
     config_db: &Option<SpfConfigDb>,
     projects_db: &Option<SpfProjectsDb>,
     tmp_db: &Option<SpfTmpDb>,
-    fs_db: &Option<SpfFs>,
+    _fs_db: &Option<SpfFs>,
     agent_db: &Option<AgentStateDb>,
 ) -> Value {
     match name {

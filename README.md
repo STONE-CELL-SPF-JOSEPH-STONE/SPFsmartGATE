@@ -206,8 +206,20 @@ All TLS via **rustls** (pure Rust) — no OpenSSL dependency.
 
 - Rust toolchain (rustup.rs)
 - LMDB system library
+- Clone as `SPFsmartGATE` in your home directory:
 
-### Build
+```bash
+cd ~
+git clone https://github.com/STONE-CELL-SPF-JOSEPH-STONE/SPFsmartGATE.git
+cd SPFsmartGATE
+bash setup.sh
+```
+
+`setup.sh` handles everything: dependency checks, binary
+build/verification, database initialization, Claude Code
+configuration, and permission setup.
+
+### Manual Build
 
 ```bash
 cd SPFsmartGATE

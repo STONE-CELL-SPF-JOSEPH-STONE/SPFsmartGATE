@@ -1,0 +1,178 @@
+# ==============================================================================
+# SPFsmartGATE — Release Workflow
+# Copyright 2026 Joseph Stone. All Rights Reserved.
+#
+# Triggered on version tags (v*). Runs tests, builds binaries for 4 platforms,
+# creates a GitHub Release with all binaries attached.
+#
+# Android aarch64 is built locally on Termux — not cross-compiled here.
+# ==============================================================================
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ============================================================================
+  # STAGE 1: TEST — must pass before any builds
+  # ============================================================================
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run tests
+        run: cargo test --verbose
+
+  # ============================================================================
+  # STAGE 2: BUILD — one binary per platform
+  # ============================================================================
+  build:
+    name: Build — ${{ matrix.name }}
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x86_64
+            target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            binary: spf-smart-gate
+            asset_suffix: x86_64-linux
+
+          - name: macOS ARM64 (Apple Silicon)
+            target: aarch64-apple-darwin
+            os: macos-latest
+            binary: spf-smart-gate
+            asset_suffix: aarch64-macos
+
+          - name: macOS x86_64 (Intel)
+            target: x86_64-apple-darwin
+            os: macos-13
+            binary: spf-smart-gate
+            asset_suffix: x86_64-macos
+
+          - name: Windows x86_64
+            target: x86_64-pc-windows-msvc
+            os: windows-latest
+            binary: spf-smart-gate.exe
+            asset_suffix: x86_64-windows.exe
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Rename binary for release
+        shell: bash
+        run: |
+          SRC="target/${{ matrix.target }}/release/${{ matrix.binary }}"
+          DEST="spf-smart-gate-${{ matrix.asset_suffix }}"
+          cp "$SRC" "$DEST"
+          echo "Built: $DEST ($(du -h "$DEST" | cut -f1))"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spf-smart-gate-${{ matrix.asset_suffix }}
+          path: spf-smart-gate-${{ matrix.asset_suffix }}
+
+  # ============================================================================
+  # STAGE 3: RELEASE — collect all binaries, create GitHub Release
+  # ============================================================================
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f | sort
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: false
+          body: |
+            ## SPFsmartGATE ${{ github.ref_name }} — AI Security Gateway
+
+            Compiled Rust enforcement between AI agents and your system.
+            Every tool call must pass through the gate.
+
+            ### Download
+
+            | Platform | Binary |
+            |----------|--------|
+            | Linux x86_64 | `spf-smart-gate-x86_64-linux` |
+            | macOS Apple Silicon | `spf-smart-gate-aarch64-macos` |
+            | macOS Intel | `spf-smart-gate-x86_64-macos` |
+            | Windows x86_64 | `spf-smart-gate-x86_64-windows.exe` |
+            | Android aarch64 | Build from source on Termux (see below) |
+
+            ### Quick Start
+
+            ```bash
+            git clone https://github.com/STONE-CELL-SPF-JOSEPH-STONE/SPFsmartGATE.git
+            cd SPFsmartGATE
+            bash setup.sh
+            ```
+
+            Or download a binary above, place it at `LIVE/BIN/spf-smart-gate/spf-smart-gate`,
+            and run `bash setup.sh` — it will detect the pre-compiled binary and skip building.
+
+            ### Test Suite
+
+            43 tests covering every security boundary:
+            ```
+            cargo test
+            ```
+
+            ### Documentation
+
+            - [README.md](README.md) — Overview and installation
+            - [SPFsmartGATEdevBIBLE](SPFsmartGATEdevBIBLE/) — Complete technical reference
+            - [CHANGELOG.md](CHANGELOG.md) — What's new
+            - [SECURITY.md](SECURITY.md) — Security policy
+
+            ---
+            Copyright 2026 Joseph Stone. All Rights Reserved.
+            Licensed under [PolyForm Noncommercial 1.0.0](LICENSE.md).
+            Commercial use requires a [separate license](COMMERCIAL_LICENSE.md).
+          files: |
+            artifacts/spf-smart-gate-x86_64-linux/spf-smart-gate-x86_64-linux
+            artifacts/spf-smart-gate-aarch64-macos/spf-smart-gate-aarch64-macos
+            artifacts/spf-smart-gate-x86_64-macos/spf-smart-gate-x86_64-macos
+            artifacts/spf-smart-gate-x86_64-windows.exe/spf-smart-gate-x86_64-windows.exe

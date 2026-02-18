@@ -225,3 +225,51 @@ impl SpfConfig {
         self.allowed_paths.iter().any(|allowed| canonical.starts_with(allowed))
     }
 }
+
+// ============================================================================
+// TESTS
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tier_boundaries() {
+        let config = SpfConfig::default();
+
+        assert_eq!(config.get_tier(0).0, "SIMPLE");
+        assert_eq!(config.get_tier(499).0, "SIMPLE");
+        assert_eq!(config.get_tier(500).0, "LIGHT");
+        assert_eq!(config.get_tier(1999).0, "LIGHT");
+        assert_eq!(config.get_tier(2000).0, "MEDIUM");
+        assert_eq!(config.get_tier(9999).0, "MEDIUM");
+        assert_eq!(config.get_tier(10000).0, "CRITICAL");
+        assert_eq!(config.get_tier(u64::MAX - 1).0, "CRITICAL");
+    }
+
+    #[test]
+    fn default_formula_exponents() {
+        let config = SpfConfig::default();
+        assert_eq!(config.formula.basic_power, 1);
+        assert_eq!(config.formula.deps_power, 7);
+        assert_eq!(config.formula.complex_power, 10);
+        assert_eq!(config.formula.files_multiplier, 10);
+        assert_eq!(config.formula.w_eff, 40000.0);
+    }
+
+    #[test]
+    fn default_enforce_mode_is_max() {
+        let config = SpfConfig::default();
+        assert_eq!(config.enforce_mode, EnforceMode::Max);
+    }
+
+    #[test]
+    fn blocked_paths_include_system_dirs() {
+        let config = SpfConfig::default();
+        assert!(config.is_path_blocked("/tmp"));
+        assert!(config.is_path_blocked("/tmp/evil.sh"));
+        assert!(config.is_path_blocked("/etc/passwd"));
+        assert!(config.is_path_blocked("/usr/bin/something"));
+    }
+}

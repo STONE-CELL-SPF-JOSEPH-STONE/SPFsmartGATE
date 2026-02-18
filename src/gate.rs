@@ -271,3 +271,62 @@ pub fn process(
         message,
     }
 }
+
+// ============================================================================
+// TESTS
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::SpfConfig;
+    use crate::session::Session;
+
+    fn default_config() -> SpfConfig {
+        SpfConfig::default()
+    }
+
+    #[test]
+    fn allowed_tool_passes_gate() {
+        let config = default_config();
+        let session = Session::new();
+        let params = ToolParams::default();
+        let decision = process("spf_status", &params, &config, &session);
+        assert!(decision.allowed, "spf_status should be allowed: {}", decision.message);
+    }
+
+    #[test]
+    fn blocked_fs_tool_denied() {
+        let config = default_config();
+        let session = Session::new();
+        let params = ToolParams::default();
+        let decision = process("spf_fs_write", &params, &config, &session);
+        assert!(!decision.allowed, "spf_fs_write should be BLOCKED");
+        assert!(decision.errors.iter().any(|e| e.contains("BLOCKED")));
+    }
+
+    #[test]
+    fn unknown_tool_denied_default_deny() {
+        let config = default_config();
+        let session = Session::new();
+        let params = ToolParams::default();
+        let decision = process("evil_new_tool", &params, &config, &session);
+        assert!(!decision.allowed, "Unknown tool should be blocked by default-deny");
+        assert!(decision.errors.iter().any(|e| e.contains("not in gate allowlist")));
+    }
+
+    #[test]
+    fn all_fs_tools_blocked() {
+        let config = default_config();
+        let session = Session::new();
+        let params = ToolParams::default();
+        let fs_tools = [
+            "spf_fs_exists", "spf_fs_stat", "spf_fs_ls", "spf_fs_read",
+            "spf_fs_write", "spf_fs_mkdir", "spf_fs_rm", "spf_fs_rename",
+        ];
+        for tool in &fs_tools {
+            let decision = process(tool, &params, &config, &session);
+            assert!(!decision.allowed, "{} should be BLOCKED", tool);
+        }
+    }
+}

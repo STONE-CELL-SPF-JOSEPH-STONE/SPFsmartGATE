@@ -309,3 +309,87 @@ pub fn calculate(tool: &str, params: &ToolParams, config: &SpfConfig) -> Complex
         requires_approval,
     }
 }
+
+// ============================================================================
+// TESTS
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::SpfConfig;
+
+    fn default_config() -> SpfConfig {
+        SpfConfig::default()
+    }
+
+    #[test]
+    fn read_produces_simple_tier() {
+        let config = default_config();
+        let params = ToolParams::default();
+        let result = calculate("spf_read", &params, &config);
+        assert_eq!(result.tier, "SIMPLE");
+        assert!(result.c < 500, "Read C={} should be < 500", result.c);
+    }
+
+    #[test]
+    fn simple_bash_is_simple_tier() {
+        let config = default_config();
+        let params = ToolParams { command: Some("ls -la".to_string()), ..Default::default() };
+        let result = calculate("spf_bash", &params, &config);
+        assert_eq!(result.tier, "SIMPLE", "Simple bash C={} tier={}", result.c, result.tier);
+    }
+
+    #[test]
+    fn dangerous_bash_is_critical_tier() {
+        let config = default_config();
+        let params = ToolParams { command: Some("rm -rf / --no-preserve-root".to_string()), ..Default::default() };
+        let result = calculate("spf_bash", &params, &config);
+        assert_eq!(result.tier, "CRITICAL", "Dangerous bash C={} should be CRITICAL", result.c);
+        assert!(result.c >= 10000);
+    }
+
+    #[test]
+    fn status_tool_is_minimal_complexity() {
+        let config = default_config();
+        let params = ToolParams::default();
+        let result = calculate("spf_status", &params, &config);
+        assert!(result.c < 100, "Status C={} should be minimal", result.c);
+        assert_eq!(result.tier, "SIMPLE");
+    }
+
+    #[test]
+    fn unknown_tool_uses_default_weights() {
+        let config = default_config();
+        let params = ToolParams::default();
+        let c = calculate_c("totally_unknown_tool", &params, &config);
+        // unknown: basic=20, deps=3, complex=1, files=1
+        // C = 20 + 3^7 + 1^10 + 1*10 = 20 + 2187 + 1 + 10 = 2218
+        assert!(c >= 2000, "Unknown tool C={} should be >= 2000 (LIGHT+)", c);
+    }
+
+    #[test]
+    fn a_optimal_within_bounds() {
+        let config = default_config();
+        let tokens = a_optimal(100, &config);
+        assert!(tokens > 0, "a_optimal(100) should be > 0");
+        assert!(tokens < 40000, "a_optimal(100)={} should be < W_eff(40000)", tokens);
+    }
+
+    #[test]
+    fn a_optimal_zero_input() {
+        let config = default_config();
+        let tokens = a_optimal(0, &config);
+        // C=0 → uses c_f=1.0, ln(1+e) ≈ 1.31, result should be positive
+        assert!(tokens > 0, "a_optimal(0)={} should still be > 0", tokens);
+    }
+
+    #[test]
+    fn risk_indicators_detected() {
+        assert!(has_risk_indicators("please delete this file"));
+        assert!(has_risk_indicators("sudo make install"));
+        assert!(has_risk_indicators("rm -rf everything"));
+        assert!(!has_risk_indicators("create a new file"));
+        assert!(!has_risk_indicators("read the documentation"));
+    }
+}

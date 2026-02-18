@@ -383,3 +383,87 @@ fn html_decode(s: &str) -> String {
         .replace("&#39;", "'")
         .replace("&nbsp;", " ")
 }
+
+// ============================================================================
+// TESTS
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // === PUBLIC IPS MUST BE ALLOWED ===
+
+    #[test]
+    fn allows_public_ipv4() {
+        assert!(validate_url("https://8.8.8.8/path").is_ok());
+        assert!(validate_url("https://1.1.1.1/").is_ok());
+        assert!(validate_url("http://93.184.216.34/").is_ok());
+    }
+
+    #[test]
+    fn allows_public_hostname() {
+        assert!(validate_url("https://example.com/").is_ok());
+        assert!(validate_url("https://api.github.com/repos").is_ok());
+    }
+
+    // === LOOPBACK MUST BE BLOCKED ===
+
+    #[test]
+    fn blocks_loopback_ipv4() {
+        assert!(validate_url("https://127.0.0.1/").is_err());
+        assert!(validate_url("https://127.0.0.99/admin").is_err());
+    }
+
+    #[test]
+    fn blocks_localhost() {
+        assert!(validate_url("https://localhost/").is_err());
+        assert!(validate_url("http://localhost:8080/api").is_err());
+    }
+
+    // === PRIVATE NETWORKS MUST BE BLOCKED ===
+
+    #[test]
+    fn blocks_private_rfc1918() {
+        assert!(validate_url("https://10.0.0.1/").is_err());         // 10.0.0.0/8
+        assert!(validate_url("https://172.16.0.1/").is_err());       // 172.16.0.0/12
+        assert!(validate_url("https://192.168.1.1/").is_err());      // 192.168.0.0/16
+    }
+
+    // === CLOUD METADATA MUST BE BLOCKED ===
+
+    #[test]
+    fn blocks_metadata_endpoints() {
+        assert!(validate_url("http://169.254.169.254/latest/meta-data/").is_err());
+        assert!(validate_url("http://100.100.100.200/").is_err());
+    }
+
+    // === IPV6 MUST BE BLOCKED ===
+
+    #[test]
+    fn blocks_ipv6_loopback() {
+        assert!(validate_url("https://[::1]/").is_err());
+    }
+
+    #[test]
+    fn blocks_ipv4_mapped_ipv6() {
+        assert!(validate_url("https://[::ffff:127.0.0.1]/").is_err());
+        assert!(validate_url("https://[::ffff:10.0.0.1]/").is_err());
+        assert!(validate_url("https://[::ffff:192.168.1.1]/").is_err());
+    }
+
+    #[test]
+    fn blocks_ipv6_private() {
+        assert!(validate_url("https://[fe80::1]/").is_err());  // link-local
+        assert!(validate_url("https://[fd00::1]/").is_err());  // unique-local
+    }
+
+    // === SCHEME ENFORCEMENT ===
+
+    #[test]
+    fn blocks_non_http_schemes() {
+        assert!(validate_url("ftp://example.com/file").is_err());
+        assert!(validate_url("file:///etc/passwd").is_err());
+        assert!(validate_url("gopher://evil.com/").is_err());
+    }
+}
