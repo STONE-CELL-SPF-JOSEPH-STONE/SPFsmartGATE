@@ -73,6 +73,7 @@ pub fn actual_home() -> &'static Path {
 
 /// System package manager path — platform-detected at compile time.
 /// Android/Termux: PREFIX env or /data/data/com.termux/files/usr
+/// Windows: C:\Program Files
 /// Linux/macOS: /usr
 pub fn system_pkg_path() -> String {
     if cfg!(target_os = "android") {
@@ -80,6 +81,8 @@ pub fn system_pkg_path() -> String {
             return prefix;
         }
         "/data/data/com.termux/files/usr".to_string()
+    } else if cfg!(target_os = "windows") {
+        r"C:\Program Files".to_string()
     } else {
         "/usr".to_string()
     }

@@ -93,11 +93,7 @@ impl Default for SpfConfig {
             blocked_paths: {
                 let root = crate::paths::spf_root().to_string_lossy();
                 let home = crate::paths::actual_home().to_string_lossy();
-                vec![
-                    "/tmp".to_string(),
-                    "/etc".to_string(),
-                    "/usr".to_string(),
-                    "/system".to_string(),
+                let mut paths = vec![
                     crate::paths::system_pkg_path(),
                     format!("{}/src/", root),
                     format!("{}/LIVE/SPF_FS/blobs/", root),
@@ -111,7 +107,22 @@ impl Default for SpfConfig {
                     format!("{}/LIVE/storage/", root),
                     format!("{}/hooks/", root),
                     format!("{}/scripts/", root),
-                ]
+                ];
+                if cfg!(target_os = "windows") {
+                    paths.extend([
+                        r"C:\Windows".to_string(),
+                        r"C:\Program Files".to_string(),
+                        r"C:\Program Files (x86)".to_string(),
+                    ]);
+                } else {
+                    paths.extend([
+                        "/tmp".to_string(),
+                        "/etc".to_string(),
+                        "/usr".to_string(),
+                        "/system".to_string(),
+                    ]);
+                }
+                paths
             },
             require_read_before_edit: true,
             max_write_size: 100_000,
