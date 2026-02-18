@@ -27,6 +27,9 @@ in real time.
 The gate is compiled into a native binary. There is no
 runtime configuration bypass. The rules are in the code.
 
+| [WHY_SPF.md](WHY_SPF.md) | Feature highlights and
+  value proposition |
+
 ## Core Features
 
 ### Gate Enforcement Pipeline
